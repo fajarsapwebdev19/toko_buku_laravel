@@ -3,46 +3,40 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
-use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Facades\URL;
+use Carbon\Carbon;
 
-class VerifyEmailUser extends Notification
+class VerifyEmailUser extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
+    public function __construct()
+    {
+        //
+    }
+
     public function via($notifiable)
     {
         return ['mail'];
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
     public function toMail($notifiable)
     {
-        $verificationUrl = $this->verificationUrl($notifiable);
+        $url = URL::temporarySignedRoute(
+            'verification.verify',
+            Carbon::now()->addMinutes(60),
+            ['id' => $notifiable->id, 'hash' => sha1($notifiable->email)]
+        );
 
         return (new MailMessage)
-        ->subject(Lang::get('Verifikasi Email Anda'))
-        ->view('email.verify-email', [
-            'user' => $notifiable,
-            'verificationUrl' => $verificationUrl
-        ]);
-    }
-
-    protected function verificationUrl($notifiable)
-    {
-        return url(route('verification.verify', [
-            'id' => $notifiable->getKey(),
-            'hash' => sha1($notifiable->getEmailForVerification())
-        ], false));
+            ->subject('Verifikasi Email Anda')
+            ->view('email.verify-email', [
+                'name' => $notifiable->personal->name,
+                'url' => $url,
+            ]);
     }
 
 }

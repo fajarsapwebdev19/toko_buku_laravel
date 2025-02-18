@@ -1,16 +1,18 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Notifications\VerifyEmailUser;
+use Exception;
 use App\Models\Cart;
-use App\Models\PersonalData;
 use App\Models\User;
 use Ramsey\Uuid\Uuid;
 use App\Models\School;
+use App\Models\PersonalData;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\View;
+use App\Notifications\VerifyEmailUser;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
@@ -118,7 +120,7 @@ class AuthController extends Controller
         return view("auth_admin");
     }
 
-    public function login_admin(Request $r)
+    public function process_auth_sad(Request $r)
     {
         $username = $r->username;
         $password = $r->password;
@@ -130,13 +132,6 @@ class AuthController extends Controller
             'username.required' => 'Masukan Username',
             'password.required' => 'Masukan Password'
         ]);
-
-        if($val->fails())
-        {
-            $err = $val->errors()->all();
-
-            return response()->json(['message' => $err], 400);
-        }
 
         $user = User::where('username', $username)->first();
 
@@ -183,117 +178,88 @@ class AuthController extends Controller
         return view('register_users');
     }
 
-    public function register_process_user(Request $r)
-    {
-        $school_name = $r->school_name;
-        $name = $r->name;
-        $gender = $r->gender;
-        $email = $r->email;
-        $username = $r->username;
-        $password = $r->password;
-        $confirm_password = $r->confirm_password;
-
-        $validator = Validator::make($r->all(), [
+    public function register_process_user(Request $request){
+        // Validasi input
+        $validator = Validator::make($request->all(), [
             'school_name' => 'required',
             'name' => 'required',
-            'gender' => 'required',
+            'gender' => 'required|in:L,P',
             'email' => 'required|email|unique:users,email',
             'username' => 'required|unique:users,username',
-            'password' => 'required',
-            'confirm_password' => 'required'
+            'password' => 'required|confirmed',
         ], [
             'school_name.required' => 'Nama Sekolah wajib di isi',
             'name.required' => 'Nama wajib di isi',
-            'gender.required' => 'Pilih Salah Satu',
+            'gender.required' => 'Pilih salah satu (L/P)',
             'email.required' => 'Email wajib di isi',
-            'email.email' => 'Format Email tidak valid',
-            'email.unique' => 'Email sudah digunakan silahkan gunakan email yang lain',
+            'email.email' => 'Format email tidak valid',
+            'email.unique' => 'Email sudah digunakan, silakan gunakan email lain',
             'username.required' => 'Username wajib di isi',
-            'username.unique' => 'Username sudah digunakan. Silakan pilih username lain.',
+            'username.unique' => 'Username sudah digunakan, silakan pilih username lain',
             'password.required' => 'Password wajib di isi',
-            'confirm_password.required' => 'Konfirmasi Password wajib di isi'
+            'password.min' => 'Password minimal 6 karakter',
+            'password.confirmed' => 'Konfirmasi Password harus sama dengan Password',
         ]);
 
         // Jika validasi gagal, kembalikan error dalam format JSON
-        if($validator->fails())
-        {
-            $err = $validator->errors()->all();
-
-            return response()->json(['message' => $err], 400);
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()->first()], 400);
         }
 
-        // cek sekolah
-        $sch = School::where('nama_sekolah', 'like', '%' . $school_name . '%')->first();
+        // Cek apakah sekolah tersedia
+        $school = School::where('nama_sekolah', 'like', '%' . addslashes($request->school_name) . '%')->first();
 
-        if($sch)
-        {
-            $npsn = $sch->npsn;
-
-            // cek username duplikat
-            $u = User::where('username', $username)->first();
-
-            if($u)
-            {
-                return response()->json(['message' => 'Username ' . $username . ' Sudah Digunakan'], 402);
-            }
-            else
-            {
-                // cek email user
-                $email = User::where('email', $email)->first();
-
-                if($email)
-                {
-                    return response()->json(['message' => 'Email ' . $email . ' Sudah Digunakan !'], 402);
-                }
-                else
-                {
-                    if($password == $confirm_password)
-                    {
-                        // proses regis dan buat users ke database
-                        $uid = Uuid::uuid4();
-                        $pid = mt_rand().rand();
-
-                        PersonalData::create([
-                            'id' => $pid,
-                            'name' => $name,
-                            'gender' => $gender,
-                            'address' => NULL,
-                            'created_at' => now(),
-                            'updated_at' => NULL
-                        ]);
-
-                        $user = User::create([
-                            'id' => $uid,
-                            'role_id' => 3,
-                            'personal_id' => $pid,
-                            'username' => $username,
-                            'password' => Hash::make($password),
-                            'email' => $email,
-                            'npsn' => $npsn,
-                            'token_reset' => NULL,
-                            'status_verify' => 'N',
-                            'status_acoount' => 'N',
-                            'verify_at' => NULL,
-                            'last_login' => NULL,
-                            'created_at' => now(),
-                            'updated_at' => NULL
-                        ]);
-
-                        $user->notify(new VerifyEmailUser());
-
-                        return response()->json(['message' => 'Registrasi berhasil! Silakan verifikasi email Anda.'], 200);
-                    }
-                    else
-                    {
-                        return response()->json(['message' => 'Konfirmasi Password harus sama dengan Password'], 402);
-                    }
-                }
-            }
+        if (!$school) {
+            return response()->json(['message' => 'Nama Sekolah tidak ditemukan, masukkan nama yang benar'], 400);
         }
-        // jika nama sekolah tidak di temukan
-        else
+
+        // Generate UUID & Personal ID
+        $user_id = Uuid::uuid4()->toString();
+        $personal_id = mt_rand();
+
+        try
         {
-            return response()->json(['message' => 'Nama Sekolah tidak di temukan, masukan nama sekolah dengan benar'], 402);
+            DB::beginTransaction();
+            // Simpan data personal
+            PersonalData::create([
+                'id' => $personal_id,
+                'name' => $request->name,
+                'gender' => $request->gender,
+                'address' => null,
+                'created_at' => now(),
+            ]);
+
+            // Simpan data user
+            $user = User::create([
+                'id' => $user_id,
+                'role_id' => 3,
+                'personal_id' => $personal_id,
+                'username' => $request->username,
+                'password' => Hash::make($request->password),
+                'email' => $request->email,
+                'npsn' => $school->npsn,
+                'token_reset' => null,
+                'status_verify' => 'N',
+                'status_account' => 'N',
+                'verify_at' => null,
+                'last_login' => null,
+                'created_at' => now(),
+            ]);
+
+            $user->notify(new VerifyEmailUser());
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Registrasi berhasil! Silakan verifikasi email Anda.'
+            ], 200);
+        }
+        catch(Exception $e)
+        {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'status' => 'Internal Server Error'
+            ], 500);
         }
     }
 
@@ -302,5 +268,12 @@ class AuthController extends Controller
         Auth::logout();
 
         return redirect('/');
+    }
+
+    public function logout_sad()
+    {
+        Auth::logout();
+
+        return redirect('/auth_sad');
     }
 }

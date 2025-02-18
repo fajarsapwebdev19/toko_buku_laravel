@@ -58,7 +58,7 @@ let register_user = $('.form-register-users').validate({
         email: {required: true, customEmail: true},
         username: {required: true},
         password: {required: true, strongPassword: true},
-        confirm_password: {required: true, equalTo: '#pw'}
+        password_confirmation: {required: true, equalTo: '#pw'}
     },
     messages:{
         school_name: {required: 'Nama Sekolah tidak boleh kosong !'},
@@ -67,7 +67,7 @@ let register_user = $('.form-register-users').validate({
         email: {required: 'Email tidak boleh kosong !', customEmail: 'Format email tidak valid.'},
         username: {required: 'Username tidak boleh kosong !'},
         password: {required: 'Password tidak boleh kosong !', strongPassword: 'Password harus minimal 8 karakter, mengandung huruf besar, huruf kecil, angka, dan karakter khusus.'},
-        confirm_password: {required: 'Konfirmasi harus di isi', equalTo: 'konfirmasi password harus sama dengan kolom password'}
+        password_confirmation: {required: 'Konfirmasi harus di isi', equalTo: 'konfirmasi password harus sama dengan kolom password'}
     },
     errorPlacement: function (error, element) {
         // Penempatan pesan kesalahan untuk radio button
@@ -98,6 +98,8 @@ let register_user = $('.form-register-users').validate({
             success:function(response)
             {
                 notify('fas fa-check', 'Success', response.message, 'success', 5000);
+                $('.form-register-users')[0].reset();
+                register_user.resetForm();
             },
             error:function(xhr)
             {
@@ -109,3 +111,46 @@ let register_user = $('.form-register-users').validate({
 });
 
 formValidateAuto('.form-register-users');
+
+let login_admin = $('.form-sys').validate({
+    rules: {
+        username: {required: true},
+        password: {required: true}
+    },
+    messages:{
+        username: 'Username wajib di isi !',
+        password: 'Password wajib di isi !'
+    },
+    submitHandler:function()
+    {
+        let form = $('.form-sys');
+        let data = form.serialize();
+
+        $.ajax({
+            url: '/process_auth_sad',
+            method: 'POST',
+            data: data,
+            success:function(response)
+            {
+                let to = response.to;
+                notify('fas fa-check', 'Success', response.message, 'success', 5000);
+                form[0].reset();
+                login_admin.resetForm();
+
+                if(to == 1 || to == 2)
+                {
+                    setTimeout(() => {
+                        window.location.href='admin/';
+                    }, 5000);
+                }
+            },
+            error:function(xhr)
+            {
+                let err = xhr.responseText;
+                errorsResponse(err);
+            }
+        });
+    }
+});
+
+formValidateAuto('.form-sys');

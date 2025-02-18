@@ -5,8 +5,8 @@ namespace App\Models;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Notifications\Notifiable;
-
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -20,6 +20,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $fillable = [
         'id',
         'role_id',
+        'personal_id', // Tambahkan ini agar dapat diisi
         'username',
         'password',
         'email',
@@ -38,8 +39,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public $incrementing = false; // Tetapkan false agar Laravel tidak menganggap primary key sebagai auto-increment
     protected $keyType = 'string'; // Tentukan tipe data untuk primary key
 
-    public function personal()
+    /**
+     * Relasi ke tabel PersonalData
+     */
+    public function personal(): BelongsTo
     {
-        return $this->belongsTo(PersonalData::class, 'personal_id');
+        return $this->belongsTo(PersonalData::class, 'personal_id', 'id');
     }
 }

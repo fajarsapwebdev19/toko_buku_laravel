@@ -1,0 +1,39 @@
+/* Styling for error messages */
+label.error {
+    color: #dc3545;
+    font-size: 14px;
+    display: block;
+    margin-top: 5px;
+}
+
+/* Error styling for input, select, and textarea */
+input.error, select.error, textarea.error {
+    border: 1px solid #dc3545;
+    background-color: #f8d7da;
+}
+
+input.error:focus, select.error:focus, textarea.error:focus {
+    border: 1px solid #dc3545;
+    outline: none;
+}
+
+/* Valid styling for input, select, and textarea */
+input.valid, select.valid, textarea.valid {
+    border: 1px solid #28a745;
+    background-color: #d4edda;
+}
+
+input.valid:focus, select.valid:focus, textarea.valid:focus {
+    border: 1px solid #28a745;
+    outline: none;
+}
+
+/* Error styling for radio buttons */
+input[type="radio"].error + label {
+    color: #dc3545;
+}
+
+/* Valid styling for radio buttons */
+input[type="radio"].valid + label {
+    color: #28a745;
+}

@@ -23,7 +23,7 @@
     <a href="../"><b>Admin</b>LTE</a>
   </div>
   <!-- /.login-logo -->
-  <div class="card">
+  <div class="card mt-5 mb-5">
     <div class="card-body login-card-body">
       <p class="login-box-msg">Register</p>
 
@@ -83,7 +83,7 @@
         </div>
         <div class="form-group mb-3">
             <label for="">Konfirmasi Password</label>
-            <input type="password" name="confirm_password" class="form-control">
+            <input type="password" name="password_confirmation" class="form-control" required>
         </div>
         <div class="row">
           <div class="col-8">
