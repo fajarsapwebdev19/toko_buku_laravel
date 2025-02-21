@@ -28,15 +28,31 @@ Route::middleware(['check_login_admin:1'])->group(function(){
         Route::get('/rekening', [AdminController::class, 'rekening'])->name('admin.rekening');
         Route::get('/account/admin', [AdminController::class, 'account_admin'])->name('admin.account_admin');
         Route::get('/account/users', [AdminController::class, 'account_users'])->name('admin.account_users');
-        Route::get('/master_data/role', [AdminController::class, 'master_role'])->name('admin.master_role');
-        Route::get('/master_data/get_role/{id}', [AdminController::class, 'get_role']);
-        Route::get('/master_data/role_data', [AdminController::class,'role_data']);
-        Route::post('/master_data/add_role', [AdminController::class, 'add_role']);
-        Route::put('/master_data/update_role/{id}', [AdminController::class, 'update_role']);
-        Route::delete('/master_data/delete_role/{id}', [AdminController::class, 'delete_role']);
-        Route::get('/master_data/sekolah', [AdminController::class, 'master_sekolah'])->name('admin.master_sekolah');
-        Route::get('/master_data/kategori', [AdminController::class, 'master_ketegori'])->name('admin.master_kategori');
-        Route::get('/master_data/buku', [AdminController::class, 'master_buku'])->name('admin.master_buku');
+        // master data
+        Route::prefix('master_data')->group(function(){
+            // role
+            Route::get('/role', [AdminController::class, 'master_role'])->name('admin.master_role');
+            Route::get('/get_role/{id}', [AdminController::class, 'get_role']);
+            Route::get('/role_data', [AdminController::class,'role_data']);
+            Route::post('/add_role', [AdminController::class, 'add_role']);
+            Route::put('/update_role/{id}', [AdminController::class, 'update_role']);
+            Route::delete('/delete_role/{id}', [AdminController::class, 'delete_role']);
+
+            // sekolah
+            Route::get('/sekolah', [AdminController::class, 'master_sekolah'])->name('admin.master_sekolah');
+            Route::get('/get_school/{npsn}', [AdminController::class, 'get_school']);
+            Route::get('/school_data', [AdminController::class, 'school_data']);
+            Route::post('/add_school', [AdminController::class, 'add_school']);
+
+            // kategori
+            Route::get('/kategori', [AdminController::class, 'master_ketegori'])->name('admin.master_kategori');
+            Route::get('/category_data', [AdminController::class, 'kategori_data']);
+
+            // buku
+            Route::get('/buku', [AdminController::class, 'master_buku'])->name('admin.master_buku');
+            Route::get('/book_data', [AdminController::class, 'data_buku']);
+
+        });
         Route::get('/pesanan', [AdminController::class, 'pesanan'])->name('admin.pesanan');
         Route::get('/pengiriman', [AdminController::class, 'pengiriman'])->name('admin.pengiriman');
         Route::get('/user_profile', [AdminController::class, 'user_profile'])->name('admin.profile');

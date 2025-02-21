@@ -96,7 +96,17 @@
           </div>
           <!-- /.col -->
           <div class="col-4">
-            <button type="submit" class="btn btn-primary btn-block">Daftar</button>
+            <button type="submit" class="btn btn-primary btn-block">
+                <span class="spin" style="display: none;">
+                    <span class="spinner-border spinner-border-sm" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </span>
+                    <span class="spinner-grow spinner-grow-sm" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </span>
+                </span>
+                Daftar
+            </button>
           </div>
           <!-- /.col -->
         </div>

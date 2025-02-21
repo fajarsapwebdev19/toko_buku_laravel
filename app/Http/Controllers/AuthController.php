@@ -111,7 +111,7 @@ class AuthController extends Controller
         {
             $userRole = Auth::user()->role_id;
 
-            if($userRole == 1 && $userRole == 2)
+            if($userRole == 1 || $userRole == 2)
             {
                return redirect('/admin');
             }
@@ -133,6 +133,13 @@ class AuthController extends Controller
             'password.required' => 'Masukan Password'
         ]);
 
+        if($val->fails())
+        {
+            $err = $val->errors()->all();
+
+            return response()->json(['message' => $err], 400);
+        }
+
         $user = User::where('username', $username)->first();
 
         if($user)
@@ -147,17 +154,26 @@ class AuthController extends Controller
                     return response()->json(['message' => 'Akun Tidak Aktif'], 401);
                 }
 
-                $role = $user->role_id;
+                // mencegah user untuk login di halaman admin
+                if($user->role_id == 3)
+                {
+                    Auth::logout();
+                    return response()->json(['message' => 'Anda tidak di izinkan untuk login di halaman ini, Silahkan login menggunakan halaman user', 'status' => 'Forbiden', 'response_code' => 403], 403);
+                }
+                else
+                {
+                    $role = $user->role_id;
 
-                $user->last_login = now();
-                $user->save();
+                    $user->last_login = now();
+                    $user->save();
 
-                return response()->json([
-                    'message' => 'Berhasil Login',
-                    'status' => 'Success',
-                    'to' => $role,
-                    'response_code' => 200
-                ], 200);
+                    return response()->json([
+                        'message' => 'Berhasil Login',
+                        'status' => 'Success',
+                        'to' => $role,
+                        'response_code' => 200
+                    ], 200);
+                }
             }
             else
             {

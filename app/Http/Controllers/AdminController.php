@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use Exception;
+use App\Models\Book;
 use App\Models\Role;
+use App\Models\School;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\DB;
@@ -148,14 +151,150 @@ class AdminController extends Controller
         return view('admin.master_sekolah');
     }
 
+    public function get_school($id)
+    {
+        $sch = School::find($id);
+
+        return response()->json($sch);
+    }
+
+    public function school_data(Request $r)
+    {
+        if($r->ajax())
+        {
+            $sch = School::orderBy('npsn', 'asc')->get();
+
+            return DataTables::of($sch)
+            ->addColumn('updated_at', function($r){
+                return ($r->updated_at == NULL) ? 'NULL' : date('d-m-Y H:i:s', strtotime($r->updated_at));
+            })
+            ->addColumn('action', function ($row) {
+                return '<button class="btn btn-info btn-sm mb-2 update" data-id="'.$row->npsn.'"><em class="fas fa-pen"></em></button> <button class="btn btn-danger btn-sm mb-2 delete" data-id="'.$row->npsn.'"><em class="fas fa-trash"></em></button>';
+            })
+            ->rawColumns(['action'])
+            ->toJson();
+
+        }
+    }
+
+    public function add_school(Request $r)
+    {
+        $validator = Validator::make($r->all(), [
+            'npsn' => 'required|numeric|digits:8',
+            'school_name' => 'required',
+            'address' => 'required',
+            'no_telp' => 'required|numeric|min_digits:12|max_digits:13',
+            'email' => 'required|email',
+            'nama_kepsek' => 'required'
+        ], [
+            'npsn.required' => 'NPSN wajib di isi !',
+            'npsn.numeric' => 'NPSN berformat angka !',
+            'npsn.digits' => 'NPSN 8 digit angka !',
+            'school_name.required' => 'Nama Sekolah wajib di isi !',
+            'address.required' => 'Alamat wajib di isi !',
+            'no_telp.required' => 'No Telp wajib di isi !',
+            'no_telp.numeric' => 'No Telp berformat angka !',
+            'no_telp.min_digits' => 'No Telp Minimal 12 digit !',
+            'no_telp.max_digits' => 'No Telp Maksimal 13 digit !',
+            'email.required' => 'Email wajib di isi !',
+            'email.email' => 'Format Email tidak valid',
+            'nama_kepsek.required' => 'Nama Kepsek wajib di isi'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()->all()], 400);
+        }
+
+        try
+        {
+            DB::beginTransaction();
+            $sch = [
+                'npsn' => $r->npsn,
+                'nama_sekolah' => $r->school_name,
+                'alamat' => $r->address,
+                'no_telp' => $r->no_telp,
+                'email' => $r->email,
+                'nama_kepsek' => $r->nama_kepsek,
+                'created_at' => now(),
+                'updated_at' => null
+            ];
+
+            School::create($sch);
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Berhasil Tambah Data Sekolah'
+            ], 200);
+        }
+        catch(Exception $e)
+        {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function update_school()
+    {
+
+    }
+
     public function master_ketegori()
     {
         return view('admin.master_kategori');
     }
 
+    public function kategori_data(Request $r)
+    {
+        if($r->ajax())
+        {
+            $sch = Category::orderBy('kelas', 'asc')->get();
+
+            return DataTables::of($sch)
+            ->addColumn('created_at', function($r){
+                return ($r->created_at == NULL) ? 'NULL' : date('d-m-Y H:i:s', strtotime($r->created_at));
+            })
+            ->addColumn('updated_at', function($r){
+                return ($r->updated_at == NULL) ? 'NULL' : date('d-m-Y H:i:s', strtotime($r->updated_at));
+            })
+            ->addColumn('action', function ($row) {
+                return '<button class="btn btn-info btn-sm mb-2 update" data-id="'.$row->npsn.'"><em class="fas fa-pen"></em></button> <button class="btn btn-danger btn-sm mb-2 delete" data-id="'.$row->npsn.'"><em class="fas fa-trash"></em></button>';
+            })
+            ->rawColumns(['action'])
+            ->toJson();
+        }
+    }
+
     public function master_buku()
     {
         return view('admin.master_buku');
+    }
+
+    public function data_buku(Request $r)
+    {
+        if($r->ajax())
+        {
+            $sch = Book::all();
+
+            return DataTables::of($sch)
+            ->addColumn('img', function($r){
+                return '<img width="10" src="'.asset($r->path_img).'">';
+            })
+            ->addColumn('created_at', function($r){
+                return ($r->created_at == NULL) ? 'NULL' : date('d-m-Y H:i:s', strtotime($r->created_at));
+            })
+            ->addColumn('updated_at', function($r){
+                return ($r->updated_at == NULL) ? 'NULL' : date('d-m-Y H:i:s', strtotime($r->updated_at));
+            })
+            ->addColumn('category', function($r){
+                return ($r->category->kategori == NULL);
+            })
+            ->addColumn('action', function ($row) {
+                return '<button class="btn btn-info btn-sm mb-2 update" data-id="'.$row->id.'"><em class="fas fa-pen"></em></button> <button class="btn btn-danger btn-sm mb-2 delete" data-id="'.$row->id.'"><em class="fas fa-trash"></em></button>';
+            })
+            ->rawColumns(['action', 'img'])
+            ->toJson();
+        }
     }
 
     public function pesanan()

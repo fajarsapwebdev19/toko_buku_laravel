@@ -1,13 +1,3 @@
-$.validator.addMethod("customEmail", function (value, element) {
-    return this.optional(element) || /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value);
-}, "Format email tidak valid.");
-
-// Menambahkan metode validasi kustom untuk password yang aman
-$.validator.addMethod("strongPassword", function (value, element) {
-    // Regex untuk memeriksa kriteria password yang aman
-    return this.optional(element) || /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(value);
-}, "Password harus minimal 8 karakter, mengandung huruf besar, huruf kecil, angka, dan karakter khusus.");
-
 let login = $('.form-login').validate({
     rules:{
         school_name: {required: true},
@@ -50,6 +40,8 @@ let login = $('.form-login').validate({
 
 formValidateAuto('.form-login');
 
+// validate register users
+
 let register_user = $('.form-register-users').validate({
     rules: {
         school_name:{required: true},
@@ -90,6 +82,10 @@ let register_user = $('.form-register-users').validate({
     submitHandler:function()
     {
         let data = $('.form-register-users').serialize();
+        let btn = $('.btn-block');
+        $('.spin').show();
+        btn.prop('disabled', true).html('<span class="spin">'+ $('.spin').html() +'</span> Mohon Tunggu');
+
 
         $.ajax({
             url: "/register_users",
@@ -97,6 +93,8 @@ let register_user = $('.form-register-users').validate({
             data: data,
             success:function(response)
             {
+                $('.btn-block').prop('disabled', false).text('Daftar');
+                $('.spin').hide();
                 notify('fas fa-check', 'Success', response.message, 'success', 5000);
                 $('.form-register-users')[0].reset();
                 register_user.resetForm();
@@ -111,6 +109,8 @@ let register_user = $('.form-register-users').validate({
 });
 
 formValidateAuto('.form-register-users');
+
+// validate login admin
 
 let login_admin = $('.form-sys').validate({
     rules: {
@@ -154,3 +154,5 @@ let login_admin = $('.form-sys').validate({
 });
 
 formValidateAuto('.form-sys');
+
+

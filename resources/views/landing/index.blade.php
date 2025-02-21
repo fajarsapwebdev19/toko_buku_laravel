@@ -24,7 +24,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
 
         <!-- Navbar -->
         <nav class="main-header navbar navbar-expand-md navbar-secondary navbar-dark sticky-top">
-            <div class="container-fluid">
+            <div class="container">
                 <a href="./" class="navbar-brand">
                     <img src="{{ asset('dist/img/AdminLTELogo.png') }}" alt="AdminLTE Logo"
                         class="brand-image img-circle elevation-3" style="opacity: .8">

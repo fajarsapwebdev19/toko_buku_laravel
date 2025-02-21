@@ -18,9 +18,20 @@ class CartCountMiddleware
             $cart = Cart::with(['book_cart'])->where('user_id', Auth::id())
             ->limit(3)
             ->get();
+
+            //cegah admin agar tidak bisa mengakses landing page ketika ada session login
+            $role = Auth::user()->role_id;
+
+            if($role == 1 || $role == 2)
+            {
+                return redirect('/admin');
+            }
+
             View::share('cartData', $cart);
             View::share('cartCount', $cartCount); // Berbagi ke semua view Blade
         }
+
+
 
         return $next($request);
     }

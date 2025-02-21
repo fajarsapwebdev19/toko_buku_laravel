@@ -55,3 +55,5 @@
 
 @include('admin.modals.role')
 @endsection
+
+@section('title', 'Master Data - Role')

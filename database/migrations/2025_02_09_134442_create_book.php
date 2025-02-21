@@ -16,6 +16,8 @@ return new class extends Migration
             $table->string('kategori_id');
             $table->string('nama_buku');
             $table->bigInteger('harga');
+            $table->bigInteger('stok');
+            $table->text('path_img');
             $table->timestamps();
         });
     }
