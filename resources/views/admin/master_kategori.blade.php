@@ -24,7 +24,7 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-sm-12">
-                <button type="button" class="btn btn-success" data-toggle="modal" data-target="#add_school">
+                <button type="button" class="btn btn-success" data-toggle="modal" data-target="#add_category">
                     <em class="fas fa-plus"></em> Tambah
                 </button>
 
@@ -52,6 +52,8 @@
     </div>
 </div>
 {{-- end content --}}
+
+@include('admin.modals.category')
 @endsection
 
 @section('title', 'Master Data - Kategori')

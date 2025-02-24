@@ -234,9 +234,68 @@ class AdminController extends Controller
         }
     }
 
-    public function update_school()
+    public function update_school($npsn, Request $r)
     {
+        $validator = Validator::make($r->all(), [
+            'school_name' => 'required',
+            'address' => 'required',
+            'no_telp' => 'required|numeric|min_digits:12|max_digits:13',
+            'email' => 'required|email',
+            'nama_kepsek' => 'required'
+        ], [
+            'school_name.required' => 'Nama Sekolah wajib di isi !',
+            'address.required' => 'Alamat wajib di isi !',
+            'no_telp.required' => 'No Telp wajib di isi !',
+            'no_telp.numeric' => 'No Telp berformat angka !',
+            'no_telp.min_digits' => 'No Telp Minimal 12 digit !',
+            'no_telp.max_digits' => 'No Telp Maksimal 13 digit !',
+            'email.required' => 'Email wajib di isi !',
+            'email.email' => 'Format Email tidak valid',
+            'nama_kepsek.required' => 'Nama Kepsek wajib di isi'
+        ]);
 
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()->all()], 400);
+        }
+
+        try
+        {
+            DB::beginTransaction();
+            School::where('npsn', $npsn)->update([
+                'nama_sekolah' => $r->school_name,
+                'alamat' => $r->address,
+                'no_telp' => $r->no_telp,
+                'email' => $r->email,
+                'nama_kepsek' => $r->nama_kepsek,
+                'updated_at' => now()
+            ]);
+            DB::commit();
+
+            return response()->json(['message' => 'Berhasil Ubah Data Sekolah'], 200);
+        }
+        catch(Exception $e)
+        {
+            return response()->json([
+                'message' => $e->getMessage()
+            ],403);
+        }
+    }
+
+    public function delete_school($npsn)
+    {
+        try{
+            School::where('npsn', $npsn)
+            ->delete();
+        }
+        catch(Exception $e){
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 403);
+        }
+
+        return response()->json([
+            'message' => 'Berhasil Hapus Data Sekolah'
+        ], 200);
     }
 
     public function master_ketegori()
@@ -244,13 +303,20 @@ class AdminController extends Controller
         return view('admin.master_kategori');
     }
 
+    public function get_category($id)
+    {
+        $c = Category::where('id', $id)->first();
+
+        return response()->json($c, 200);
+    }
+
     public function kategori_data(Request $r)
     {
         if($r->ajax())
         {
-            $sch = Category::orderBy('kelas', 'asc')->get();
+            $c = Category::orderBy('kelas', 'asc')->get();
 
-            return DataTables::of($sch)
+            return DataTables::of($c)
             ->addColumn('created_at', function($r){
                 return ($r->created_at == NULL) ? 'NULL' : date('d-m-Y H:i:s', strtotime($r->created_at));
             })
@@ -258,10 +324,64 @@ class AdminController extends Controller
                 return ($r->updated_at == NULL) ? 'NULL' : date('d-m-Y H:i:s', strtotime($r->updated_at));
             })
             ->addColumn('action', function ($row) {
-                return '<button class="btn btn-info btn-sm mb-2 update" data-id="'.$row->npsn.'"><em class="fas fa-pen"></em></button> <button class="btn btn-danger btn-sm mb-2 delete" data-id="'.$row->npsn.'"><em class="fas fa-trash"></em></button>';
+                return '<button class="btn btn-info btn-sm mb-2 update" data-id="'.$row->id.'"><em class="fas fa-pen"></em></button> <button class="btn btn-danger btn-sm mb-2 delete" data-id="'.$row->id.'"><em class="fas fa-trash"></em></button>';
             })
             ->rawColumns(['action'])
             ->toJson();
+        }
+    }
+
+    public function add_category(Request $r)
+    {
+        $validator = Validator::make($r->all(), [
+            'kategori' => 'required',
+            'kelas' => 'required'
+        ], [
+            'kategori.required' => 'Kategori wajib di isi',
+            'kelas.required' => 'Pilih salah satu'
+        ]);
+
+        if($validator->fails())
+        {
+            return response()->json(['message' => $validator->errors()->all()], 403);
+        }
+
+        $id = mt_rand();
+
+        try{
+            DB::beginTransaction();
+            Category::create([
+                'id' => $id,
+                'jenis' => $r->kategori,
+                'kelas' => $r->kelas,
+                'created_at' => now(),
+                'updated_at' => null
+            ]);
+            DB::commit();
+
+            return response()->json(['message' => 'Berhasil Tambah Kategori'], 200);
+        }
+        catch(Exception $e)
+        {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
+    }
+
+
+    // delete category
+    public function delete_category($id)
+    {
+        try
+        {
+            DB::beginTransaction();
+            Category::where('id', $id)->delete();
+            DB::commit();
+
+            return response()->json(['message' => 'Hapus Data Berhasil !'], 200);
+        }
+        catch(Exception $e)
+        {
+            return response()->json(['message' => $e->getMessage()], 403);
         }
     }
 

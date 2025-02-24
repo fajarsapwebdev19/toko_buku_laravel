@@ -43,10 +43,15 @@ Route::middleware(['check_login_admin:1'])->group(function(){
             Route::get('/get_school/{npsn}', [AdminController::class, 'get_school']);
             Route::get('/school_data', [AdminController::class, 'school_data']);
             Route::post('/add_school', [AdminController::class, 'add_school']);
+            Route::put('/update_school/{npsn}', [AdminController::class, 'update_school']);
+            Route::delete('/delete_school/{npsn}', [AdminController::class, 'delete_school']);
 
             // kategori
             Route::get('/kategori', [AdminController::class, 'master_ketegori'])->name('admin.master_kategori');
             Route::get('/category_data', [AdminController::class, 'kategori_data']);
+            Route::get('/get_category/{id}', [AdminController::class, 'get_category']);
+            Route::post('/add_category', [AdminController::class, 'add_category']);
+            Route::delete('/delete_category/{id}', [AdminController::class, 'delete_category']);
 
             // buku
             Route::get('/buku', [AdminController::class, 'master_buku'])->name('admin.master_buku');

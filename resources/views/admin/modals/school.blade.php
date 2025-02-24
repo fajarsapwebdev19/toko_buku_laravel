@@ -70,12 +70,7 @@
             <form method="post" id="form-update-school">
                 @csrf
                 <div class="modal-body">
-                    <div class="form-group mb-3">
-                        <label for="" class="form-label">
-                            NPSN
-                        </label>
-                        <input type="text" name="npsn" class="form-control">
-                    </div>
+                    <input type="hidden" id="npsn" name="npsn" class="form-control">
                     <div class="form-group mb-3">
                         <label for="" class="form-label">
                             Nama Sekolah
@@ -116,20 +111,20 @@
     </div>
 </div>
 
-<div class="modal fade" id="delete_role" data-backdrop="static" data-keyboard="false" tabindex="-1"
+<div class="modal fade" id="delete_school" data-backdrop="static" data-keyboard="false" tabindex="-1"
     aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="staticBackdropLabel">Ubah Role</h5>
+                <h5 class="modal-title" id="staticBackdropLabel">Hapus Sekolah</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form method="post" id="form-delete-role">
+            <form method="post" id="form-delete-school">
                 @csrf
                 <div class="modal-body">
-                    <input type="hidden" id="id">
+                    <input type="hidden" id="npsn">
                     <div class="mt-3 text-center">
                         <p>Apakah anda yakin ingin hapus data ? </p>
                         <button type="button" class="btn btn-sm btn-success" id="delete">
